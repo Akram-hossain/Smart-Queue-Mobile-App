@@ -30,3 +30,10 @@ local.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# Env / secrets
+.env
+.env.local
+*.keystore
+*.jks
+

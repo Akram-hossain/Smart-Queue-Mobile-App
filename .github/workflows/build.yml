@@ -38,10 +38,42 @@ jobs:
       - name: Regenerate platform files
         run: |
           flutter create . \
-            --project-name smartqueue \
+            --project-name semestermate \
             --org com.groupalpha \
             --platforms=android \
             --empty
+
+      # flutter_local_notifications needs POST_NOTIFICATIONS on Android 13+,
+      # plus an internet permission for Supabase. We patch the manifest after
+      # `flutter create` regenerates it.
+      - name: Patch AndroidManifest for notifications + internet
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          p = pathlib.Path("android/app/src/main/AndroidManifest.xml")
+          src = p.read_text()
+          perms = (
+              '    <uses-permission android:name="android.permission.INTERNET"/>\n'
+              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
+              '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n'
+              '    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n'
+              '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n'
+              '    <uses-permission android:name="android.permission.VIBRATE"/>\n'
+          )
+          if "POST_NOTIFICATIONS" not in src:
+              # Match <manifest ...> even if it spans multiple lines
+              new_src, n = re.subn(
+                  r'(<manifest\b[^>]*>\s*\n)',
+                  r'\1' + perms,
+                  src,
+                  count=1,
+                  flags=re.DOTALL,
+              )
+              if n == 0:
+                  raise SystemExit("ERROR: could not find <manifest ...> tag to patch")
+              p.write_text(new_src)
+          print(p.read_text())
+          PY
 
       - name: Install dependencies
         run: flutter pub get
@@ -51,17 +83,23 @@ jobs:
         continue-on-error: true
 
       - name: Build release APK
-        run: flutter build apk --release
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
 
       - name: Rename APK
         run: |
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk dist/smartqueue-release.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/semestermate-release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: smartqueue-release-apk
-          path: dist/smartqueue-release.apk
+          name: semestermate-release-apk
+          path: dist/semestermate-release.apk
           if-no-files-found: error
           retention-days: 30
