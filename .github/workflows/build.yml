@@ -25,7 +25,9 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3'
+          # 3.27+ ships the new declarative Android Gradle plugin that
+          # modern packages (app_links 6.x via supabase_flutter) require.
+          flutter-version: '3.32.0'
           channel: stable
           cache: true
 
