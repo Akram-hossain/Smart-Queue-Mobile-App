@@ -91,7 +91,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       if (base == null) {
         await ctrl.create(task);
       } else {
-        await ctrl.update(task);
+        await ctrl.save(task);
       }
 
       // schedule a reminder one hour before — best effort

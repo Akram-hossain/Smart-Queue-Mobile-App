@@ -26,7 +26,7 @@ class AttendanceController extends AsyncNotifier<List<AttendanceItem>> {
     await refresh();
   }
 
-  Future<void> update(AttendanceItem item) async {
+  Future<void> save(AttendanceItem item) async {
     await _repo.update(item);
     await refresh();
   }

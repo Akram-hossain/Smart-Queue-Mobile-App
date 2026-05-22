@@ -76,7 +76,7 @@ class _GpaFormScreenState extends ConsumerState<GpaFormScreen> {
       if (base == null) {
         await ctrl.create(item);
       } else {
-        await ctrl.update(item);
+        await ctrl.save(item);
       }
       if (mounted) context.pop();
     } catch (e) {

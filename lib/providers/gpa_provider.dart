@@ -27,7 +27,7 @@ class GpaController extends AsyncNotifier<List<GpaRecord>> {
     await refresh();
   }
 
-  Future<void> update(GpaRecord item) async {
+  Future<void> save(GpaRecord item) async {
     await _repo.update(item);
     await refresh();
   }

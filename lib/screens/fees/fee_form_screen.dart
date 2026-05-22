@@ -91,7 +91,7 @@ class _FeeFormScreenState extends ConsumerState<FeeFormScreen> {
       if (base == null) {
         await ctrl.create(item);
       } else {
-        await ctrl.update(item);
+        await ctrl.save(item);
       }
 
       // notification reminder 1 day before deadline if not paid

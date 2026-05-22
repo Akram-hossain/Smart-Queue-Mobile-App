@@ -77,6 +77,36 @@ jobs:
           print(p.read_text())
           PY
 
+      # Several plugins (app_links, flutter_local_notifications, etc.) demand
+      # NDK 27.0.12077973. Override the project NDK to silence the warning
+      # and match the plugins.
+      - name: Patch build.gradle.kts NDK version
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          p = pathlib.Path("android/app/build.gradle.kts")
+          src = p.read_text()
+          target = 'ndkVersion = "27.0.12077973"'
+          new_src, n = re.subn(
+              r'ndkVersion\s*=\s*[^\n]+',
+              target,
+              src,
+              count=1,
+          )
+          if n == 0:
+              # No existing ndkVersion line — inject one right after compileSdk
+              new_src, n = re.subn(
+                  r'(compileSdk\s*=\s*[^\n]+\n)',
+                  r'\1    ' + target + '\n',
+                  src,
+                  count=1,
+              )
+          if n == 0:
+              raise SystemExit("ERROR: could not patch ndkVersion in build.gradle.kts")
+          p.write_text(new_src)
+          print(new_src)
+          PY
+
       - name: Install dependencies
         run: flutter pub get
 

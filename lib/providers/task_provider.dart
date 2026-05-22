@@ -27,7 +27,8 @@ class TasksController extends AsyncNotifier<List<TaskItem>> {
     await refresh();
   }
 
-  Future<void> update(TaskItem task) async {
+  // Named `save` (not `update`) because `AsyncNotifier.update` is a base API.
+  Future<void> save(TaskItem task) async {
     await _repo.update(task);
     await refresh();
   }

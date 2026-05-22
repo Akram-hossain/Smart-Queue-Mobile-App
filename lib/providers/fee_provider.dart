@@ -26,7 +26,7 @@ class FeesController extends AsyncNotifier<List<SemesterFee>> {
     await refresh();
   }
 
-  Future<void> update(SemesterFee item) async {
+  Future<void> save(SemesterFee item) async {
     await _repo.update(item);
     await refresh();
   }
