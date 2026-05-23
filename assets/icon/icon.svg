@@ -1,27 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  SemesterMate launcher icon (legacy / full).
-  1024x1024 — gradient background + white "school" glyph (Material Symbols).
-  Used as image_path in pubspec flutter_launcher_icons config.
+  SemesterMate launcher icon — v2.
+  1024x1024. Polished mortarboard mark on a 3-stop indigo→violet→pink gradient
+  with a soft top-left highlight for depth. Designed to be recognisable at
+  small sizes.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%"  stop-color="#6366F1"/>
-      <stop offset="50%" stop-color="#7C3AED"/>
-      <stop offset="100%" stop-color="#A855F7"/>
+      <stop offset="0%"  stop-color="#4338CA"/>
+      <stop offset="55%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#DB2777"/>
     </linearGradient>
+    <radialGradient id="hl" cx="22%" cy="20%" r="65%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6"/>
+    </filter>
   </defs>
 
   <!-- Background tile (Android will round-mask this for legacy icons). -->
   <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#hl)"/>
 
-  <!-- Subtle highlight ring for depth -->
-  <circle cx="512" cy="512" r="430"
-          fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+  <!-- Subtle drop shadow under the cap (mortarboard floats slightly) -->
+  <ellipse cx="512" cy="740" rx="220" ry="18"
+           fill="#000000" fill-opacity="0.18" filter="url(#softShadow)"/>
 
-  <!-- Material "school" glyph, scaled to ~520px, centered. -->
-  <g transform="translate(252, 252) scale(21.67)" fill="white">
-    <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-  </g>
+  <!-- Cap base (the headband / underside) -->
+  <path d="M 348 488
+           L 348 612
+           C 348 644, 366 666, 402 682
+           C 462 708, 488 716, 512 716
+           C 536 716, 562 708, 622 682
+           C 658 666, 676 644, 676 612
+           L 676 488 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Inner shadow line under the mortarboard (for depth between board and cap) -->
+  <path d="M 348 488 L 676 488"
+        stroke="#E0E7FF" stroke-width="6"/>
+
+  <!-- Mortarboard (flat diamond on top) -->
+  <path d="M 512 268
+           L 856 412
+           L 512 556
+           L 168 412 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Subtle bevel: thin highlight along the top edge -->
+  <path d="M 512 268 L 856 412"
+        stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="3"/>
+
+  <!-- Tassel button at the centre of the board -->
+  <circle cx="512" cy="412" r="22" fill="#4338CA"/>
+  <circle cx="512" cy="412" r="12" fill="#FFFFFF"/>
+
+  <!-- Tassel cord (from button, curves to the right then drops) -->
+  <path d="M 524 414
+           Q 760 410, 776 540
+           Q 770 640, 740 728"
+        stroke="#FFFFFF" stroke-width="14" fill="none" stroke-linecap="round"/>
+
+  <!-- Tassel head (bell-shaped) -->
+  <path d="M 712 726
+           L 768 726
+           L 760 776
+           L 720 776 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Tassel strands (3 hanging strings) -->
+  <line x1="720" y1="780" x2="712" y2="822"
+        stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="740" y1="784" x2="740" y2="828"
+        stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="760" y1="780" x2="768" y2="822"
+        stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
 </svg>

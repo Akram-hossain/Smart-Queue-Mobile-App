@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants.dart';
 import '../../core/env.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/error_messages.dart';
 import '../../utils/validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/primary_button.dart';
@@ -37,7 +38,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!Env.isConfigured) {
-      setState(() => _error = 'Supabase is not configured.');
+      setState(() => _error =
+          'The app isn\'t connected to the server. Please reinstall the latest version.');
       return;
     }
     setState(() => _loading = true);
@@ -46,7 +48,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       setState(() => _info =
           'If an account exists for that email, a reset link has been sent.');
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _error = friendlyAuthError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

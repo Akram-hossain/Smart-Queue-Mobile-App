@@ -6,6 +6,7 @@ import '../../core/constants.dart';
 import '../../core/env.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
+import '../../utils/error_messages.dart';
 import '../../utils/validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/primary_button.dart';
@@ -55,7 +56,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!Env.isConfigured) {
       setState(() => _error =
-          'Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY as repo secrets and rebuild.');
+          'The app isn\'t connected to the server. Please reinstall the latest version.');
       return;
     }
     setState(() => _loading = true);
@@ -77,7 +78,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             'Account created. Check your email for a confirmation link, then sign in.');
       }
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _error = friendlyAuthError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

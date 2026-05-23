@@ -1,9 +1,5 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/profile.dart';
 import '../models/task.dart';
@@ -49,12 +45,14 @@ class AppRoutes {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final notifier = _AuthListenable(ref);
-  ref.onDispose(notifier.dispose);
-
+  // Note: we deliberately do NOT pass a refreshListenable. The auth-state
+  // stream emitting mid-frame caused races with manual navigation
+  // (login.context.go(/dashboard), profile.context.go(/login)) that
+  // produced a flash of blank during shell ↔ non-shell transitions.
+  // Login / logout / register all navigate explicitly, so the redirect
+  // below is only consulted when the user actively navigates.
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    refreshListenable: notifier,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final isSplash = loc == AppRoutes.splash;
@@ -157,20 +155,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Bridges Supabase auth-state changes into go_router's Listenable contract.
-class _AuthListenable extends ChangeNotifier {
-  _AuthListenable(this._ref) {
-    _sub = _ref
-        .read(authRepositoryProvider)
-        .authChanges()
-        .listen((_) => notifyListeners());
-  }
-  final Ref _ref;
-  StreamSubscription<AuthState>? _sub;
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
-}

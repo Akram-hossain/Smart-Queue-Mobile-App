@@ -13,11 +13,66 @@ import '../../routes/app_router.dart';
 import '../../utils/grade.dart';
 import '../../widgets/gradient_card.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _signingOut = false;
+
+  Future<void> _confirmAndSignOut() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('You will need to log in again.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    // Show full-screen overlay so there's no chance of a blank frame
+    // while supabase clears the session and the shell route unmounts.
+    setState(() => _signingOut = true);
+
+    try {
+      await ref.read(authRepositoryProvider).signOut();
+    } catch (_) {
+      // best-effort — manual storage clearing already happened in the repo
+    }
+
+    // Drop cached user data so the next signed-in user sees fresh records.
+    ref.invalidate(profileProvider);
+    ref.invalidate(tasksProvider);
+    ref.invalidate(attendanceProvider);
+    ref.invalidate(feesProvider);
+    ref.invalidate(gpaProvider);
+
+    if (!mounted) return;
+
+    // Navigate on the next frame so the widget tree is in a stable state
+    // when GoRouter swaps the shell route for /login.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        GoRouter.of(context).go(AppRoutes.login);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final profileAsync = ref.watch(profileProvider);
     final user = ref.watch(currentUserProvider);
@@ -26,6 +81,41 @@ class ProfileScreen extends ConsumerWidget {
     final fees = ref.watch(feesProvider).valueOrNull ?? const [];
     final cgpa = ref.watch(cgpaProvider);
 
+    return Stack(
+      children: [
+        _buildScaffold(theme, profileAsync, user, tasks, attendance, fees, cgpa),
+        if (_signingOut)
+          Positioned.fill(
+            child: ColoredBox(
+              color: Colors.black.withOpacity(0.55),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text(
+                      'Signing out…',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildScaffold(
+    ThemeData theme,
+    AsyncValue<dynamic> profileAsync,
+    dynamic user,
+    List<dynamic> tasks,
+    List<dynamic> attendance,
+    List<dynamic> fees,
+    double cgpa,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -181,38 +271,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppPadding.lg),
               OutlinedButton.icon(
-                onPressed: () async {
-                  final ok = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: const Text('Sign out?'),
-                      content:
-                          const Text('You\'ll need to log in again.'),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel')),
-                        FilledButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Sign out')),
-                      ],
-                    ),
-                  );
-                  if (ok != true) return;
-                  // Sign out (defensive — clears local storage even if the
-                  // Supabase call fails).
-                  await ref.read(authRepositoryProvider).signOut();
-                  // Drop all per-user cached data so a different user logging
-                  // in next sees their own records, not the previous one's.
-                  ref.invalidate(profileProvider);
-                  ref.invalidate(tasksProvider);
-                  ref.invalidate(attendanceProvider);
-                  ref.invalidate(feesProvider);
-                  ref.invalidate(gpaProvider);
-                  // The auth-state-driven redirect should already have moved
-                  // us to /login, but force it as a safety net.
-                  if (context.mounted) context.go(AppRoutes.login);
-                },
+                onPressed: _signingOut ? null : _confirmAndSignOut,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.danger,
                   side: const BorderSide(color: AppColors.danger),

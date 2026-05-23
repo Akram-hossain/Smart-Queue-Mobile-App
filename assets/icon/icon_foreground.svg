@@ -1,13 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Adaptive-icon foreground layer for Android 8+.
-  Transparent background; the launcher mixes this on top of
-  `adaptive_icon_background` (a solid colour declared in pubspec).
-  The glyph is kept inside Android's "safe zone" (inner 66% of the
-  1024x1024 canvas) so circular / rounded-square masks never clip it.
+  Adaptive-icon foreground layer — same mortarboard, smaller so it stays
+  inside Android's adaptive-icon safe zone (~inner 432×432 of 1024×1024).
+  Transparent background; the launcher composites it on top of the
+  adaptive_icon_background colour declared in pubspec.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <g transform="translate(320, 320) scale(16.0)" fill="white">
-    <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-  </g>
+  <!-- Cap base -->
+  <path d="M 396 506
+           L 396 596
+           C 396 620, 412 638, 440 650
+           C 484 670, 498 676, 512 676
+           C 526 676, 540 670, 584 650
+           C 612 638, 628 620, 628 596
+           L 628 506 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Mortarboard (diamond) -->
+  <path d="M 512 350
+           L 716 442
+           L 512 534
+           L 308 442 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Tassel button -->
+  <circle cx="512" cy="442" r="14" fill="#FFFFFF" fill-opacity="0.0"/>
+
+  <!-- Tassel cord -->
+  <path d="M 524 444
+           Q 668 442, 672 526
+           Q 668 580, 652 638"
+        stroke="#FFFFFF" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+  <!-- Tassel head -->
+  <path d="M 632 636
+           L 672 636
+           L 666 672
+           L 638 672 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Strands -->
+  <line x1="640" y1="676" x2="635" y2="708"
+        stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <line x1="652" y1="678" x2="652" y2="710"
+        stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <line x1="664" y1="676" x2="669" y2="708"
+        stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
 </svg>

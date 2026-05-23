@@ -6,6 +6,7 @@ import '../../core/constants.dart';
 import '../../core/env.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
+import '../../utils/error_messages.dart';
 import '../../utils/validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/primary_button.dart';
@@ -37,7 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!Env.isConfigured) {
       setState(() => _error =
-          'Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY as repo secrets and rebuild.');
+          'The app isn\'t connected to the server. Please reinstall the latest version.');
       return;
     }
     setState(() => _loading = true);
@@ -46,16 +47,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await repo.signIn(email: _email.text, password: _password.text);
       if (mounted) context.go(AppRoutes.dashboard);
     } catch (e) {
-      setState(() => _error = _friendly(e));
+      setState(() => _error = friendlyAuthError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  String _friendly(Object e) {
-    final s = e.toString();
-    if (s.contains('Invalid login')) return 'Wrong email or password';
-    return s.replaceFirst('Exception: ', '');
   }
 
   @override
