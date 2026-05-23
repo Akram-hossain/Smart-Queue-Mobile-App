@@ -28,6 +28,11 @@ Future<void> main() async {
 
   // Local notifications init runs in the background — failure here is non-fatal.
   await NotificationService.instance.init();
+  // Fire-and-forget the permission prompt. On Android 13+ the system dialog
+  // appears once; on older Android and on iOS, this resolves true silently.
+  // Without this call, schedule/show requests are dropped by the OS.
+  // ignore: discarded_futures
+  NotificationService.instance.requestPermission();
 
   runApp(const ProviderScope(child: SemesterMateApp()));
 }

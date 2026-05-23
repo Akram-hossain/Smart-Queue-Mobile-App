@@ -71,6 +71,16 @@ class NotificationService {
     await _plugin.show(id, title, body, _details());
   }
 
+  /// Fires immediately — used by the "Send test notification" button so
+  /// the user can verify permissions / channel setup without waiting.
+  Future<void> showTestNotification() async {
+    await showNow(
+      id: 999001,
+      title: 'SemesterMate is set up',
+      body: 'You will get reminders for exams, assignments and fee deadlines.',
+    );
+  }
+
   /// Schedule a one-shot notification. Falls back to inexact scheduling so we
   /// don't need the user to grant SCHEDULE_EXACT_ALARM at runtime.
   Future<void> scheduleAt({

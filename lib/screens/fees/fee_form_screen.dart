@@ -54,6 +54,26 @@ class _FeeFormScreenState extends ConsumerState<FeeFormScreen> {
     super.dispose();
   }
 
+  /// Pick a reminder time for a fee deadline. The due_date column is a
+  /// Postgres `date` (no time component), so we treat it as "end of day".
+  DateTime? _pickFeeReminderTime(DateTime due) {
+    final now = DateTime.now();
+    // Treat the due date as 09:00 local on that day for a "wake-up" reminder.
+    final dueMoment = DateTime(due.year, due.month, due.day, 9, 0);
+    if (!dueMoment.isAfter(now)) return null;
+    // Default: 1 day before at 18:00
+    final oneDayBefore =
+        DateTime(due.year, due.month, due.day - 1, 18, 0);
+    if (oneDayBefore.isAfter(now.add(const Duration(seconds: 10)))) {
+      return oneDayBefore;
+    }
+    // Same day, earlier in the day
+    if (dueMoment.isAfter(now.add(const Duration(minutes: 1)))) {
+      return dueMoment;
+    }
+    return now.add(const Duration(seconds: 10));
+  }
+
   Future<void> _pickDate() async {
     final d = await showDatePicker(
       context: context,
@@ -94,17 +114,25 @@ class _FeeFormScreenState extends ConsumerState<FeeFormScreen> {
         await ctrl.save(item);
       }
 
-      // notification reminder 1 day before deadline if not paid
-      if (ref.read(notificationsEnabledProvider) &&
-          !item.isPaid &&
-          _due.isAfter(DateTime.now().add(const Duration(days: 1)))) {
-        await NotificationService.instance.scheduleAt(
-          id: ('fee_${item.id}').hashCode & 0x7fffffff,
-          title: 'Semester fee reminder',
-          body:
-              '${_label.text.trim()} is due in 1 day (${DateFmt.shortDate(_due)})',
-          when: _due.subtract(const Duration(days: 1)),
-        );
+      // Notification reminder for unpaid fees — robust against short windows.
+      if (ref.read(notificationsEnabledProvider) && !item.isPaid) {
+        final remindAt = _pickFeeReminderTime(_due);
+        if (remindAt != null) {
+          await NotificationService.instance.scheduleAt(
+            id: ('fee_${item.id}').hashCode & 0x7fffffff,
+            title: 'Semester fee due soon',
+            body:
+                '${_label.text.trim()} is due on ${DateFmt.shortDate(_due)}',
+            when: remindAt,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                'Reminder set for ${DateFmt.shortDateTime(remindAt)}',
+              ),
+            ));
+          }
+        }
       }
 
       if (mounted) context.pop();

@@ -51,6 +51,25 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     super.dispose();
   }
 
+  /// Choose a sensible reminder time so we don't silently no-op when the
+  /// due date is close. Returns null when the due date is already past.
+  DateTime? _pickReminderTime(DateTime due) {
+    final now = DateTime.now();
+    if (!due.isAfter(now)) return null;
+    // Default: one hour before due
+    final oneHourBefore = due.subtract(const Duration(hours: 1));
+    if (oneHourBefore.isAfter(now.add(const Duration(seconds: 10)))) {
+      return oneHourBefore;
+    }
+    // Closer: 5 minutes before due
+    final fiveMinBefore = due.subtract(const Duration(minutes: 5));
+    if (fiveMinBefore.isAfter(now.add(const Duration(seconds: 10)))) {
+      return fiveMinBefore;
+    }
+    // Very close: fire in 10 seconds so the user still sees something
+    return now.add(const Duration(seconds: 10));
+  }
+
   Future<void> _pickDateTime() async {
     final d = await showDatePicker(
       context: context,
@@ -94,16 +113,26 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         await ctrl.save(task);
       }
 
-      // schedule a reminder one hour before — best effort
+      // Schedule a reminder — best effort. Picks a sensible "when" so we
+      // don't silently drop the reminder if the due date is very close.
       if (ref.read(notificationsEnabledProvider) &&
-          _due.isAfter(DateTime.now()) &&
           _status != TaskStatus.completed) {
-        await NotificationService.instance.scheduleAt(
-          id: task.id.hashCode & 0x7fffffff,
-          title: '${_type.label} reminder',
-          body: '"${task.title}" is due at ${DateFmt.time(_due)}',
-          when: _due.subtract(const Duration(hours: 1)),
-        );
+        final remindAt = _pickReminderTime(_due);
+        if (remindAt != null) {
+          await NotificationService.instance.scheduleAt(
+            id: task.id.hashCode & 0x7fffffff,
+            title: '${_type.label}: ${task.title}',
+            body: 'Due ${DateFmt.shortDateTime(_due)}',
+            when: remindAt,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                'Reminder set for ${DateFmt.shortDateTime(remindAt)}',
+              ),
+            ));
+          }
+        }
       }
       if (mounted) context.pop();
     } catch (e) {

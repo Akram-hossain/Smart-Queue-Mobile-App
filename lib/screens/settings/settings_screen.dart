@@ -76,6 +76,39 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: const Text(
                       'Local notifications for exams, assignments and fees'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: const Text('Send a test notification'),
+                  subtitle: const Text(
+                      'Fires immediately so you can confirm permissions'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final granted = await NotificationService.instance
+                        .requestPermission();
+                    if (!granted) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Notification permission was denied. Enable it in your phone\'s Settings → Apps → SemesterMate → Notifications.'),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                    await NotificationService.instance
+                        .showTestNotification();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Test notification sent. Pull down the status bar to see it.'),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ],
             ),
           ),
