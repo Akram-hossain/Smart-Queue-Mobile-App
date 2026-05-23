@@ -27,8 +27,9 @@ class Profile {
         semester: map['semester'] as String?,
         university: map['university'] as String?,
         avatarUrl: map['avatar_url'] as String?,
-        createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-            DateTime.now(),
+        createdAt: (DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+                DateTime.now())
+            .toLocal(),
       );
 
   Map<String, dynamic> toUpdateMap() => {

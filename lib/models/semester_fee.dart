@@ -25,10 +25,12 @@ class SemesterFee {
         semesterLabel: map['semester_label'] as String,
         totalFee: (map['total_fee'] as num).toDouble(),
         paidAmount: (map['paid_amount'] as num).toDouble(),
+        // due_date column is a Postgres `date` (no time) — already local.
         dueDate: DateTime.parse(map['due_date'] as String),
         paymentNote: map['payment_note'] as String?,
-        createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-            DateTime.now(),
+        createdAt: (DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+                DateTime.now())
+            .toLocal(),
       );
 
   Map<String, dynamic> toInsertMap(String userId) => {

@@ -29,11 +29,15 @@ class TaskItem {
         title: map['title'] as String,
         description: map['description'] as String?,
         type: TaskType.fromDb(map['type'] as String),
-        dueDate: DateTime.parse(map['due_date'] as String),
+        // Supabase stores timestamptz; DateTime.parse keeps UTC if the
+        // string ends in Z. Convert to local so display uses the user's
+        // timezone instead of UTC.
+        dueDate: DateTime.parse(map['due_date'] as String).toLocal(),
         priority: TaskPriority.fromDb(map['priority'] as String),
         status: TaskStatus.fromDb(map['status'] as String),
-        createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-            DateTime.now(),
+        createdAt: (DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+                DateTime.now())
+            .toLocal(),
       );
 
   Map<String, dynamic> toInsertMap(String userId) => {

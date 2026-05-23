@@ -29,8 +29,9 @@ class GpaRecord {
         courseCode: map['course_code'] as String?,
         credit: (map['credit'] as num).toDouble(),
         grade: Grade.fromLabel(map['grade'] as String),
-        createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-            DateTime.now(),
+        createdAt: (DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+                DateTime.now())
+            .toLocal(),
       );
 
   Map<String, dynamic> toInsertMap(String userId) => {

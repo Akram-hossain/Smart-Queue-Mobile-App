@@ -21,8 +21,9 @@ class AttendanceItem {
         subjectName: map['subject_name'] as String,
         totalClasses: (map['total_classes'] as num).toInt(),
         attendedClasses: (map['attended_classes'] as num).toInt(),
-        createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-            DateTime.now(),
+        createdAt: (DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+                DateTime.now())
+            .toLocal(),
       );
 
   Map<String, dynamic> toInsertMap(String userId) => {

@@ -31,6 +31,21 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
+            tooltip: 'Edit profile',
+            onPressed: () {
+              final p = profileAsync.valueOrNull;
+              if (p != null) {
+                context.push(AppRoutes.profileEdit, extra: p);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile still loading…')),
+                );
+              }
+            },
+            icon: const Icon(Icons.edit_outlined),
+          ),
+          IconButton(
+            tooltip: 'Settings',
             onPressed: () => context.push(AppRoutes.settings),
             icon: const Icon(Icons.settings_outlined),
           ),

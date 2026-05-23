@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/profile.dart';
 import '../models/task.dart';
 import '../providers/auth_provider.dart';
 import '../screens/attendance/attendance_form_screen.dart';
@@ -17,6 +18,7 @@ import '../screens/fees/fee_form_screen.dart';
 import '../screens/fees/fees_screen.dart';
 import '../screens/gpa/gpa_form_screen.dart';
 import '../screens/gpa/gpa_screen.dart';
+import '../screens/profile/profile_edit_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/shell/main_shell.dart';
@@ -42,6 +44,7 @@ class AppRoutes {
   static const gpa = '/gpa';
   static const gpaNew = '/gpa/new';
   static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const settings = '/settings';
 }
 
@@ -119,6 +122,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, __) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profileEdit,
+        builder: (_, state) =>
+            ProfileEditScreen(profile: state.extra as Profile),
       ),
       GoRoute(
         path: AppRoutes.tasksCalendar,
