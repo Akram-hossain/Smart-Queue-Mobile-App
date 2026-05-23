@@ -143,6 +143,20 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Render the SVG icons to PNG so flutter_launcher_icons can consume them.
+      # librsvg2-bin is small (~1MB) and faster than ImageMagick for SVG.
+      - name: Install librsvg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends librsvg2-bin
+
+      - name: Render launcher icons (SVG -> PNG)
+        run: |
+          rsvg-convert -w 1024 -h 1024 assets/icon/icon.svg -o assets/icon/icon.png
+          rsvg-convert -w 1024 -h 1024 assets/icon/icon_foreground.svg -o assets/icon/icon_foreground.png
+          ls -lh assets/icon/
+
+      - name: Generate Android launcher icons
+        run: dart run flutter_launcher_icons
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
         continue-on-error: true

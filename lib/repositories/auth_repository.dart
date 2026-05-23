@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/supabase_service.dart';
@@ -46,5 +47,32 @@ class AuthRepository {
   Future<void> sendPasswordReset(String email) =>
       _auth.resetPasswordForEmail(email.trim());
 
-  Future<void> signOut() => _auth.signOut();
+  /// Sign out defensively:
+  /// 1. Ask Supabase to clear its session (may throw on network error — ignore).
+  /// 2. As belt-and-braces, manually remove any cached supabase auth tokens
+  ///    from SharedPreferences. This stops "log in again after reopening" if
+  ///    the SDK ever leaves a stale token behind.
+  Future<void> signOut() async {
+    try {
+      if (_supabase.isReady) {
+        await _auth.signOut();
+      }
+    } catch (_) {
+      // best-effort — we still want to clear local storage below
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((k) {
+        final lower = k.toLowerCase();
+        return lower.contains('supabase') ||
+            lower.startsWith('sb-') ||
+            lower.contains('gotrue');
+      }).toList();
+      for (final k in keys) {
+        await prefs.remove(k);
+      }
+    } catch (_) {
+      // best-effort
+    }
+  }
 }

@@ -198,10 +198,20 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
                   );
-                  if (ok == true) {
-                    await ref.read(authRepositoryProvider).signOut();
-                    if (context.mounted) context.go(AppRoutes.login);
-                  }
+                  if (ok != true) return;
+                  // Sign out (defensive — clears local storage even if the
+                  // Supabase call fails).
+                  await ref.read(authRepositoryProvider).signOut();
+                  // Drop all per-user cached data so a different user logging
+                  // in next sees their own records, not the previous one's.
+                  ref.invalidate(profileProvider);
+                  ref.invalidate(tasksProvider);
+                  ref.invalidate(attendanceProvider);
+                  ref.invalidate(feesProvider);
+                  ref.invalidate(gpaProvider);
+                  // The auth-state-driven redirect should already have moved
+                  // us to /login, but force it as a safety net.
+                  if (context.mounted) context.go(AppRoutes.login);
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.danger,
